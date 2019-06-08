@@ -1,0 +1,72 @@
+body {
+    margin: 0;
+}
+
+div {
+    border: 2px solid Tomato;
+}
+
+.bluebg {
+    background-color: #0050ff;
+}
+
+.box-3 {
+    float: left;
+    width: 33%;
+}
+
+#login {
+    background-color: white;
+    margin: auto;
+    padding: 40px;
+    text-align: center;
+    width: 390px;
+    border-radius: 3px;
+}
+
+#login input {
+    width: 280px;
+    padding: 15px;
+    margin: 10px auto;
+    border-radius: 3px;
+    border: 2px solid #e7e7e7;
+}
+
+#navbar {
+    height: 35px;
+}
+
+#icon {
+    float: left;
+    width: 10%;
+}
+
+#padding {
+    float: left;
+    width: 78%;
+}
+
+#profile {
+    float: right;
+    width: 10%;
+}
+
+#body-padding {
+    padding: 0 8px;
+    height: 100%;
+}
+
+#sidebar {
+    width: 14%;
+    float: left;
+}
+
+#chat {
+    width: 74%;
+    float: left;
+}
+
+#users {
+    float: left;
+    width: 10%;
+}
