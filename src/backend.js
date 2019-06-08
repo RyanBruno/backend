@@ -55,7 +55,7 @@ app.post('/signup', async (req, res) => {
             res.render('signup.html', { error: true, message: 'Username already exists!' });
             return;
         }
-        const insert = await tx.run("MERGE (n:User {username: usernameParam}) ON CREATE SET n.name = name ON CREATE SET n.password = password", {usernameParam: username});
+        const insert = await tx.run("MERGE (n:User {username: {usernameParam}}) ON CREATE SET n.name = {nameParam} ON CREATE SET n.password = {passwordParam}", {usernameParam: username, nameParam: name, passwordParam: password});
         
         await tx.commit();
         console.log("UserCreated: { %s, %s, %s }", name, username, password);
@@ -78,14 +78,17 @@ app.post('/login', async (req, res) => {
     var { username, password } = req.body;
     // TODO input validation
 
+    const tx = neo.beginTx();
     const result = await tx.run("MATCH (n:User {username : {usernameParam} }) RETURN n", {usernameParam: username});
+    tx.commit();
     
-    if (result.records.length != 0 && results.records[0].password == password)
+    if (result.records.length != 0 && results.records[0].get().properties.password == password)
     {
+        res.render('login.html', { error: true, message: 'Success!' })
         // Login successful
     } else 
     {
-        res.render('signup.html', { error: true, message: 'Invalid username and/or password!' });
+        res.render('login.html', { error: true, message: 'Invalid username and/or password!' });
     }
 });
 
