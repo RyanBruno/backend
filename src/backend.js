@@ -5,6 +5,7 @@ const http = require('http');
 const https = require('https');
 
 const neo = require('./neo');
+const validation = require('./validation');
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.set('view engine', 'mustache');
 app.set('views', __dirname + '/../views');
 
 app.use('/style.css', express.static('views/style.css'));
+app.use('/app.js', express.static('views/app.js'));
 app.use(express.urlencoded({ extended: false }));
 
 app.get('/signup', (req, res) => {
@@ -22,78 +24,78 @@ app.get('/signup', (req, res) => {
 });
 
 /* {'name': , 'username': , 'password': } */
-app.post('/signup', async (req, res) => {
+app.post('/signup', (req, res) => {
     var { name, username, password } = req.body;
 
-    // TODO Size validations
-    if (name.match("[^A-Za-z\-' ']"))
+    if (validation.validateName(name))
     {
-        res.render('signup.html', { error: true, message: 'Name must only contain uppercase and lowercase letters, spaces and hyphen' });
+        res.render('signup.html', { error: true, message: 'Name must only contain uppercase and lowercase letters, spaces and hyphen and be between 6-36 charaters' });
         return;
     }
 
-    if (username.match("[^A-Za-z0-9]"))
+    if (validation.validateUsername(username))
     {
-        res.render('signup.html', { error: true, message: 'Username must only contain uppercase and lowercase letters and numbers' });
+        res.render('signup.html', { error: true, message: 'Username must only contain uppercase and lowercase letters and numbers and between 6-36 charaters' });
         return;
     }
 
-    if (password.match("[^A-Za-z0-9!@#$%^&*<>,.~[]"))
+    if (validation.validatePassword(password))
     {
-        res.render('signup.html', { error: true, message: 'Password must only contain uppercase and lowercase letters, numbers, and !@#$%^&*<>,.~[]' });
+        res.render('signup.html', { error: true, message: 'Password must only contain uppercase and lowercase letters, numbers, and !@#$%^&*<>,.~ and between 6-36 charaters' });
         return;
     }
+
 
     //TODO Hash password
 
     // Check if exsists
-    const tx = neo.beginTx();
-    try {
-        const result = await tx.run("MATCH (n:User {username : {usernameParam} }) RETURN n", {usernameParam: username});
-        if (result.records.length != 0) 
-        {
+
+    neo.checkThenMergeUser(username, name, password).then((added) => {
+        if (added) {
+            res.redirect('login?message="Account created! Login."');
+        } else {
             res.render('signup.html', { error: true, message: 'Username already exists!' });
-            return;
         }
-        const insert = await tx.run("MERGE (n:User {username: {usernameParam}}) ON CREATE SET n.name = {nameParam} ON CREATE SET n.password = {passwordParam}", {usernameParam: username, nameParam: name, passwordParam: password});
-        
-        await tx.commit();
-        console.log("UserCreated: { %s, %s, %s }", name, username, password);
-
-    } catch (error)
-    {
-        console.log(error);
+    }).catch((error) => {
         res.render('signup.html', { error: true, message: 'An error has occured!' });
-        return;
-    }
+        console.log(error);
+    });
 
-    res.redirect('login?message="Account created! Login."');
+
 });
 
 app.get('/login', (req, res) => {
     res.render('login.html');
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', (req, res) => {
     var { username, password } = req.body;
     // TODO input validation
 
-    const tx = neo.beginTx();
-    const result = await tx.run("MATCH (n:User {username : {usernameParam} }) RETURN n", {usernameParam: username});
-    tx.commit();
-    
-    if (result.records.length != 0 && results.records[0].get().properties.password == password)
-    {
-        res.render('login.html', { error: true, message: 'Success!' })
-        // Login successful
-    } else 
-    {
-        res.render('login.html', { error: true, message: 'Invalid username and/or password!' });
-    }
+    neo.verifyLogin(username, password).then((success) => {
+        if (success)
+        {
+            res.render('login.html', { error: false, message: 'Success!' })
+        } else 
+        {
+            res.render('login.html', { error: true, message: 'Invalid username and/or password!' });
+        }
+    }).catch((error) => {
+        console.log(error);
+        res.render('login.html', { error: true, message: 'An error has occured!' });
+    });
 });
 
-app.get('/ui', async (req, res) => {
-    
+app.get('/ui', (req, res) => {
+    // Get cookies 
+    // Validate cookie get username
+
+    neo.getUserChannelTag(username).then((result) => {
+        res.render('ui.html', result);
+    }).catch((error) => {
+        console.log(error);
+        res.render('login.html', { error: true, message: 'An error has occured!' });
+    });
 });
 
 http.createServer(app).listen(8080, () => {
