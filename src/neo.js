@@ -49,31 +49,39 @@ const getUserChannelTag = async function(username)
                                 "RETURN u, c, t", 
                                 { usernameParam: username });
     tx.commit();
-    var answer = {};
+    var answer = { };
 
     result.records.forEach((record) => {
-        if (record.has(0))
+        if (record.get(0) !== null)
         {
-            answer.user.username = record.get(0).properties.username;
-            answer.user.name = record.get(0).properties.name;
+            answer.username = record.get(0).properties.username;
+            answer.name = record.get(0).properties.name;
         }
         
 
-        if (record.has(1))
+        if (record.get(1) !== null)
         {
             var channel = {
                 address: record.get(1).properties.address,
                 nickname: record.get(1).properties.nickname,
             };
+            if (answer.channelList === undefined)
+            {
+                answer.channelList = [];
+            }
             answer.channelList.push(channel);
         }
 
-        if (record.has(2))
+        if (record.get(2) !== null)
         {
             var tag = {
                 name: record.get(2).properties.name,
                 color: record.get(2).properties.color,
             };
+            if (answer.tagList === undefined)
+            {
+                answer.tagList = [];
+            }
             answer.tagList.push(tag);
         }
     });

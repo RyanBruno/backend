@@ -9,9 +9,9 @@
   "author": "RyanBruno",
   "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.19.0",
+    "connect-redis": "^3.4.1",
     "express": "^4.17.1",
-    "mustache": "^3.0.1",
+    "express-session": "^1.16.1",
     "mustache-express": "^1.2.8",
     "neo4j-driver": "^1.7.5"
   }

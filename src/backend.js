@@ -1,6 +1,8 @@
 const express = require('express');
-const bodyParser = require('body-parser')
 const mustacheExpress = require('mustache-express');
+const session = require('express-session');
+const redisStore = require('connect-redis')(session);
+
 const http = require('http');
 const https = require('https');
 
@@ -17,6 +19,7 @@ app.set('views', __dirname + '/../views');
 
 app.use('/style.css', express.static('views/style.css'));
 app.use('/app.js', express.static('views/app.js'));
+app.use(session({ store: new redisStore({ url: "redis://localhost:6379" }), secret: 'very secret secret', resave: false, saveUninitialized: false, }));
 app.use(express.urlencoded({ extended: false }));
 
 app.get('/signup', (req, res) => {
@@ -65,6 +68,11 @@ app.post('/signup', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
+    if (req.session.username != undefined) 
+    {
+        res.render('login.html', { error: false, message: 'Logged in as ' + req.session.username });
+        return;
+    }
     res.render('login.html');
 });
 
@@ -75,6 +83,8 @@ app.post('/login', (req, res) => {
     neo.verifyLogin(username, password).then((success) => {
         if (success)
         {
+            //res.redirect('ui');
+            req.session.username = username;
             res.render('login.html', { error: false, message: 'Success!' })
         } else 
         {
@@ -87,10 +97,16 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/ui', (req, res) => {
-    // Get cookies 
-    // Validate cookie get username
+    var username = req.session.username;
+
+    if (username === undefined)
+    {
+        res.render('login.html', { error: true, message: 'Please login' });
+        return;
+    }
 
     neo.getUserChannelTag(username).then((result) => {
+        console.log(result);
         res.render('ui.html', result);
     }).catch((error) => {
         console.log(error);
