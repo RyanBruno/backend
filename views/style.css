@@ -2,17 +2,42 @@ body {
     margin: 0;
 }
 
-div {
+dignv {
     border: 2px solid Tomato;
 }
 
 .bluebg {
-    background-color: #0050ff;
+    background-color: #0081ff;
+    color: white;
 }
 
 .box-3 {
     float: left;
     width: 33%;
+}
+
+#chat {
+    -webkit-box-shadow: inset 0px 0px 7px 1px rgba(10,33,51,1);
+    -moz-box-shadow: inset 0px 0px 7px 1px rgba(10,33,51,1);
+    box-shadow: inset 0px 0px 7px 1px rgba(10,33,51,1);
+    background-color: #e8e8e8;
+    padding: 0 15px;
+    height: 100%;
+}
+
+.message {
+    padding: 3px;
+}
+
+.message p {
+    display: inline;
+}
+
+.icon {
+    float: left;
+    height: 40px;
+    width: 40px;
+    margin-right: 4px;
 }
 
 #login {
