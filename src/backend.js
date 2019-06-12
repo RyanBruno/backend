@@ -114,6 +114,17 @@ app.get('/ui', (req, res) => {
     });
 });
 
+app.get('/api/:channel/messages', (req, res) => {
+
+    neo.getChannelMessages(req.session.username, req.params.channel).then((answer) => {
+        // TODO JSON
+    }).catch((error) => {
+        // TODO Error in UI
+        console.log(error);
+    });
+
+});
+
 http.createServer(app).listen(8080, () => {
     console.log('App listing: 8080');
 });

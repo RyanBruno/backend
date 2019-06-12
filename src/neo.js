@@ -91,4 +91,27 @@ const getUserChannelTag = async function(username)
     return answer;
 };
 
-module.exports = { beginTx, checkThenMergeUser, verifyLogin, getUserChannelTag };
+const getChannelMessages = async function(username, channel)
+{
+
+    const tx = beginTx();
+    const result = await tx.run("MATCH (u:User {username: {usernameParam}})" + 
+                                "MATCH (u) --> (c:Channel {nickname: {nicknameParam})" +
+                                "MATCH (c) --> (m:Message)" +
+                                "RETURN m", 
+                                { usernameParam: username, nicknameParam});
+    tx.commit();
+
+    var answer = [ ];
+
+    result.records.forEach((record) => {
+        if (record.get(0) !== null)
+        {
+            answer.push(record.get(0).properties);
+        }
+    });
+
+    return answer;
+};
+
+module.exports = { beginTx, checkThenMergeUser, verifyLogin, getUserChannelTag, getChannelMessages };

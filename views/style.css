@@ -22,7 +22,6 @@ dignv {
     box-shadow: inset 0px 0px 7px 1px rgba(10,33,51,1);
     background-color: #e8e8e8;
     padding: 0 15px;
-    height: 100%;
 }
 
 .message {
@@ -78,7 +77,6 @@ dignv {
 
 #body-padding {
     padding: 0 8px;
-    height: 100%;
 }
 
 #sidebar {
