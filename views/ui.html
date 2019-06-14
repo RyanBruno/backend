@@ -1,48 +1,22 @@
 <html>
     <head>
-        <title>Brand - {{username}} - Messaging Interface</title>
+        <title>Brand - Messaging Interface</title>
         <link rel="stylesheet" type="text/css" href="style.css">
     </head>
     <body>
         <div id="navbar" class="bluebg">
             <div id="icon">
-                Icon
-            </div>
-            <div id="padding">
+                A Brand Name
             </div>
             <div id="profile">
                 {{Profile}}
             </div>
         </div>
-        <div id="body-padding">
-            <div id="sidebar">
-                <ul id="channel-list">
-                    <li class="channel">Inbox</li>
-                    {{#channelList}}
-                    <li class="channel">{{nickname}}</li>
-                    {{/channelList}}
-                </ul>
-                <ul id="tag-list">
-                    {{#tagList}}
-                    <li>{{name}}</li>
-                    {{/tagList}}
-                </ul>
-            </div>
-            <div id="chat">
-                <div class="message">
-                    <img src="https://proxy.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fsvg%2F20170602%2Fperson_1058425.png&f=1" class="icon">
-                    <p>Username</p>
-                    <p>10:50:60</p>
-                    <br>
-                    <p>Message...............................</p>
-                </div>
-                    <?-- Updated by js -->
-            </div>
-            <div id="users">
-                <ul id="user-list">
-                    <li></li> <?-- Updated by js -->
-                </ul>
-            </div>
+        <div id="sidebar">
+        </div>
+        <div id="chat">
+        </div>
+        <div id="users">
         </div>
     </body>
     <script src="app.js"></script>

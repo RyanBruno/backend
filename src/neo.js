@@ -40,7 +40,7 @@ const verifyLogin = async function(username, password)
     return result.records.length != 0 && result.records[0].get(0).properties.password == password;
 };
 
-const getUserChannelTag = async function(username) 
+const getUserInfo = async function(username) 
 {
     const tx = beginTx();
     const result = await tx.run("MATCH (u:User {username: {usernameParam}})" + 
@@ -49,13 +49,13 @@ const getUserChannelTag = async function(username)
                                 "RETURN u, c, t", 
                                 { usernameParam: username });
     tx.commit();
-    var answer = { };
+    var userInfo = { };
 
     result.records.forEach((record) => {
         if (record.get(0) !== null)
         {
-            answer.username = record.get(0).properties.username;
-            answer.name = record.get(0).properties.name;
+            userInfo.username = record.get(0).properties.username;
+            userInfo.name = record.get(0).properties.name;
         }
         
 
@@ -65,11 +65,11 @@ const getUserChannelTag = async function(username)
                 address: record.get(1).properties.address,
                 nickname: record.get(1).properties.nickname,
             };
-            if (answer.channelList === undefined)
+            if (userInfo.channelList === undefined)
             {
-                answer.channelList = [];
+                userInfo.channelList = [];
             }
-            answer.channelList.push(channel);
+            userInfo.channelList.push(channel);
         }
 
         if (record.get(2) !== null)
@@ -78,17 +78,18 @@ const getUserChannelTag = async function(username)
                 name: record.get(2).properties.name,
                 color: record.get(2).properties.color,
             };
-            if (answer.tagList === undefined)
+            if (userInfo.tagList === undefined)
             {
-                answer.tagList = [];
+                userInfo.tagList = [];
             }
-            answer.tagList.push(tag);
+            userInfo.tagList.push(tag);
         }
     });
 
+
     // Throw error if user is not found
 
-    return answer;
+    return userInfo;
 };
 
 const getChannelMessages = async function(username, channel)
@@ -114,4 +115,4 @@ const getChannelMessages = async function(username, channel)
     return answer;
 };
 
-module.exports = { beginTx, checkThenMergeUser, verifyLogin, getUserChannelTag, getChannelMessages };
+module.exports = { beginTx, checkThenMergeUser, verifyLogin, getUserInfo, getChannelMessages };

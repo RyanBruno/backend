@@ -21,7 +21,6 @@ dignv {
     -moz-box-shadow: inset 0px 0px 7px 1px rgba(10,33,51,1);
     box-shadow: inset 0px 0px 7px 1px rgba(10,33,51,1);
     background-color: #e8e8e8;
-    padding: 0 15px;
 }
 
 .message {
@@ -37,6 +36,15 @@ dignv {
     height: 40px;
     width: 40px;
     margin-right: 4px;
+}
+
+.dot {
+    position: absolute;
+    height: 25px;
+    width: 25px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
 }
 
 #login {
@@ -60,23 +68,12 @@ dignv {
     height: 35px;
 }
 
-#icon {
-    float: left;
-    width: 10%;
-}
-
-#padding {
-    float: left;
-    width: 78%;
-}
-
 #profile {
     float: right;
-    width: 10%;
 }
 
-#body-padding {
-    padding: 0 8px;
+#icon {
+    float: left;
 }
 
 #sidebar {

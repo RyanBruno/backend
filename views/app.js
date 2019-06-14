@@ -1,27 +1,118 @@
-
 var active = "Inbox";
 
-var data = [
-];
-
+    //{
+    //    username:,
+    //    name:,
+    //    channelList: [ {address:, nickname:,},],
+    //    tagList: [{name:, color:,},],
+    //}
         //name: "Inbox",
         //messages: [{ img: "https://proxy.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fsvg%2F20170602%2Fperson_1058425.png&f=1",
         //            message: "Message............",
         //            username: "Username",
         //            timestamp: "10:50:60" },],
 
-var channels = document.getElementsByClassName("channel");
-
-for (i = 0; i < channels.length; i++)
+function displayLoading()
 {
-    console.log(channels[i]);
-    var channel = { name: channels[i].innerHTML, messages: [] };
 
-    // Call api get messages
+    var chat = document.getElementById("chat");
 
-    data.push(channel);
+    var dot1 = document.createElement("div");
+    var dot2 = document.createElement("div");
+    var dot3 = document.createElement("div");
+    var loading = document.createElement("p");
+    loading.appendChild(document.createTextNode("Loading"));
+    dot1.className = "dot";
+    dot2.className = "dot";
+    dot3.className = "dot";
+
+    dot1.style.top = (window.innerHeight / 3) + "px";
+    dot2.style.top = (window.innerHeight / 3) + "px";
+    dot3.style.top = (window.innerHeight / 3) + "px";
+    loading.style.position = "absolute";
+    loading.style.top = ((window.innerHeight / 3) - 50) + "px";
+
+    chat.appendChild(dot1);
+    chat.appendChild(dot2);
+    chat.appendChild(dot3);
+    chat.appendChild(loading);
+
+    var offset = 50;
+    var delta = 1;
+    return setInterval(() => {
+        offset = offset + delta;
+        if (offset == 100) {
+            delta = -1;
+        } else if (offset == 0) {
+            delta = 1;
+        }
+        var pos = offset + (window.innerWidth / 2) - 50;
+        dot1.style.left = (pos - 45) + "px";
+        dot2.style.left = (pos - 5) + "px";
+        dot3.style.left = (pos + 35) + "px";
+        loading.style.left = (window.innerWidth / 2 - 35) + "px";
+    }, 1);
 }
 
+function setHeight()
+{
+    var sidebar = document.getElementById("sidebar");
+    var chat = document.getElementById("chat");
+    var users = document.getElementById("users");
+
+    sidebar.style.height = (window.innerHeight - 40) + "px";
+    chat.style.height = (window.innerHeight - 40) + "px";
+    users.style.height = (window.innerHeight - 40) + "px";
+}
+
+// /api/user/
+// Dump all information based 
+async function fetchUserInfo() 
+{
+    var userInfo = await fetch(window.location.host + "/api/user/", {
+          credentials: 'same-origin' 
+    });
+
+    //TODO validate input
+    return userInfo.json();
+} 
+
+async function startup()
+{
+    setHeight();
+    window.addEventListener('resize', setHeight);
+    displayLoading();
+
+    try{ 
+//        var userInfo = await fetchUserInfo();
+        var userInfo = {
+            username: "Username",
+            name: "Real Name",
+            channelList: [{address: "address@ex.com", nickname: "Channel",},],
+            tagList: [{name: "Tag", color: "Red",},],
+        };
+
+        var sidebar = document.getElementById("sidebar");
+
+        userInfo.channelList.forEach((channel) => {
+            var p = document.createElement("p");
+            p.className = "channel";
+            p.appendChild(document.createTextNode(channel.nickname));
+            sidebar.appendChild(p);
+        });
+
+        userInfo.tagList.forEach((tag) => {
+            var p = document.createElement("p");
+            p.className = "tag";
+            p.appendChild(document.createTextNode(tag.name));
+            sidebar.appendChild(p);
+        });
+    } catch(error) {
+        console.log(error);
+    }
+}
+
+startup();
                 //<div class="message">
                 //    <img src="https://proxy.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fsvg%2F20170602%2Fperson_1058425.png&f=1" class="icon">
                 //    <p>Username</p>
@@ -29,13 +120,9 @@ for (i = 0; i < channels.length; i++)
                 //    <br>
                 //    <p>Message...............................</p>
                 //</div>
-var messages = document.getElementById("chat");
-messages.style.height = (window.innerHeight - 80) + "px";
-window.addEventListener('resize', function(event) {
-    messages.style.height = (window.innerHeight - 80) + "px";
-});
 
-// TODO Spinning loading animation
+
+
 // Message Format <Profile> <Username> <Time>
 //                <Profile> <Message>
 /*
