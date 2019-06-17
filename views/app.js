@@ -69,7 +69,17 @@ function setHeight()
 // Dump all information based 
 async function fetchUserInfo() 
 {
-    var userInfo = await fetch(window.location.host + "/api/user/", {
+    var userInfo = await fetch("/api/user/", {
+          credentials: 'same-origin' 
+    });
+
+    //TODO validate input
+    return userInfo.json();
+} 
+
+async function fetchChannelMessages(channel) 
+{
+    var userInfo = await fetch(window.location.host + "/:channel/messages", {
           credentials: 'same-origin' 
     });
 
@@ -84,13 +94,13 @@ async function startup()
     displayLoading();
 
     try{ 
-//        var userInfo = await fetchUserInfo();
-        var userInfo = {
-            username: "Username",
-            name: "Real Name",
-            channelList: [{address: "address@ex.com", nickname: "Channel",},],
-            tagList: [{name: "Tag", color: "Red",},],
-        };
+        var userInfo = await fetchUserInfo();
+
+        {
+            var p = document.createElement("p");
+            p.appendChild(document.createTextNode(userInfo.name));
+            document.getElementById("profile").appendChild(p);
+        }
 
         var sidebar = document.getElementById("sidebar");
 
@@ -106,6 +116,31 @@ async function startup()
             p.className = "tag";
             p.appendChild(document.createTextNode(tag.name));
             sidebar.appendChild(p);
+        });
+
+        var chat = document.getElementById("chat");
+
+        userInfo.messageList.forEach((message) => {
+            var div = document.createElement("div");
+            div.className = "message";
+            var img = document.createElement("img");
+            img.className = "icon";
+            img.src = message.img;
+            var username = document.createElement("p");
+            username.appendChild(document.createTextNode(message.username));
+            var time = document.createElement("p");
+            time.appendChild(document.createTextNode(message.timestamp));
+            var br = document.createElement("br");
+            var msg = document.createElement("p");
+            msg.appendChild(document.createTextNode(message.message));
+
+            div.appendChild(img);
+            div.appendChild(username);
+            div.appendChild(time);
+            div.appendChild(br);
+            div.appendChild(msg);
+
+            chat.appendChild(div);
         });
     } catch(error) {
         console.log(error);

@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
+const validation = require('./validation');
+const neo = require('./neo');
+
 router.use(express.json());
 
 router.get('/:channel/messages', (req, res) => {
@@ -17,7 +20,8 @@ router.get('/:channel/messages', (req, res) => {
 
 router.get('/user/', (req, res) => {
 
-    neo.getUserInfo(req.session.username).then((response) => {
+    //neo.getuserinfo(req.session.username).then((response) => {
+    neo.getUserInfo("Username").then((response) => {
         res.send(response);
     }).catch((error) => {
         // TODO Error in UI

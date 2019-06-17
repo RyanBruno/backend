@@ -46,7 +46,8 @@ const getUserInfo = async function(username)
     const result = await tx.run("MATCH (u:User {username: {usernameParam}})" + 
                                 "OPTIONAL MATCH (u) --> (c:Channel)" +
                                 "OPTIONAL MATCH (u) --> (t:Tag)" +
-                                "RETURN u, c, t", 
+                                "OPTIONAL MATCH (u) --> (m:Message)" +
+                                "RETURN u, c, t, m", 
                                 { usernameParam: username });
     tx.commit();
     var userInfo = { };
@@ -84,6 +85,20 @@ const getUserInfo = async function(username)
             }
             userInfo.tagList.push(tag);
         }
+
+        if (record.get(3) !== null)
+        {
+            var message = {
+                message: record.get(3).properties.message,
+                timestamp: record.get(3).properties.timestamp,
+                username: record.get(3).properties.username,
+            };
+            if (userInfo.messageList === undefined)
+            {
+                userInfo.messageList = [];
+            }
+            userInfo.messageList.push(message);
+        }
     });
 
 
@@ -100,7 +115,7 @@ const getChannelMessages = async function(username, channel)
                                 "MATCH (u) --> (c:Channel {nickname: {nicknameParam})" +
                                 "MATCH (c) --> (m:Message)" +
                                 "RETURN m", 
-                                { usernameParam: username, nicknameParam});
+                                { usernameParam: username, nicknameParam: channel});
     tx.commit();
 
     var answer = [ ];
