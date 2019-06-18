@@ -2,18 +2,16 @@ body {
     margin: 0;
 }
 
-dignv {
-    border: 2px solid Tomato;
+div {
+    float: left;
+}
+
+p {
+    display: inline;
 }
 
 .bluebg {
     background-color: #0081ff;
-    color: white;
-}
-
-.box-3 {
-    float: left;
-    width: 33%;
 }
 
 #chat {
@@ -24,18 +22,17 @@ dignv {
 }
 
 .message {
+    width: 100%;
     padding: 3px;
+    margin: 0 15px;
 }
 
-.message p {
-    display: inline;
-}
-
-.icon {
+.message img {
     float: left;
     height: 40px;
     width: 40px;
     margin-right: 4px;
+    margin-top: 2px;
 }
 
 .dot {
@@ -56,6 +53,20 @@ dignv {
     border-radius: 3px;
 }
 
+#messages {
+    width: 100%;
+    float: none;
+}
+
+#chat-box {
+    width: 100%;
+    float: none;
+    margin: 0 auto;
+    height: 60px;
+    border-radius: 3px;
+    background-color: black;
+}
+
 #login input {
     width: 280px;
     padding: 15px;
@@ -65,28 +76,26 @@ dignv {
 }
 
 #navbar {
+    float: none;
     height: 35px;
 }
 
-#profile {
+.floatR {
     float: right;
 }
 
-#icon {
-    float: left;
+#sidebar p {
+    margin-left: 5%;
 }
 
 #sidebar {
-    width: 14%;
-    float: left;
+    width: 13%;
 }
 
 #chat {
     width: 74%;
-    float: left;
 }
 
 #users {
-    float: left;
-    width: 10%;
+    width: 13%;
 }
