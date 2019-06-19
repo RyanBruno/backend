@@ -63,20 +63,6 @@ router.post('/login', (req, res) => {
     var { username, password } = req.body;
     // TODO input validation
 
-    neo.verifyLogin(username, password).then((success) => {
-        if (success)
-        {
-            //res.redirect('ui');
-            req.session.username = username;
-            res.render('login.html', { error: false, message: 'Success!' })
-        } else 
-        {
-            res.render('login.html', { error: true, message: 'Invalid username and/or password!' });
-        }
-    }).catch((error) => {
-        console.log(error);
-        res.render('login.html', { error: true, message: 'An error has occured!' });
-    });
 });
 
 router.get('/ui', (req, res) => {

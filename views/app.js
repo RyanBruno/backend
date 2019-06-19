@@ -78,27 +78,27 @@ function setHeight()
     messages.style.height = (window.innerHeight - 100) + "px";
 }
 
-// /api/user/
-// Dump all information based 
-async function fetchUserInfo() 
+async function fetchUsername() 
 {
-    var userInfo = await fetch("/api/user/", {
-          credentials: 'same-origin' 
+    var result = await fetch("/api/session/", {
+        method: 'GET',
+        credentials: 'same-origin',
     });
 
-    //TODO validate input
-    return userInfo.json();
-} 
+    result = await result.json();
 
-async function fetchChannelMessages(channel) 
+    return result.username;
+}
+
+async function getUserChannels(username)
 {
-    var userInfo = await fetch(window.location.host + "/:channel/messages", {
-          credentials: 'same-origin' 
+    const result = await fetch("/api/user/:" + username + "/channel/", {
+        method: 'GET',
+        credentials: 'same-origin',
     });
 
-    //TODO validate input
-    return userInfo.json();
-} 
+    return await result.json();
+}
 
 async function startup()
 {
@@ -109,27 +109,21 @@ async function startup()
     loading.display();
 
     try{ 
-        var userInfo = await fetchUserInfo();
+        const username = await fetchUsername();
+        const channels = await getUserChannels(username); // [ { channelName, profile {tbd} }]
         loading.hide();
 
         document.getElementById("profile").
-            appendChild(document.createTextNode(userInfo.name));
+            appendChild(document.createTextNode(username));
 
         var sidebar = document.getElementById("sidebar");
 
-        userInfo.channelList.forEach((channel) => {
+        channels.forEach((channel) => {
             var p = document.createElement("p");
             p.className = "channel";
-            p.appendChild(document.createTextNode(channel.nickname));
+            p.appendChild(document.createTextNode(channel.channelName));
             sidebar.appendChild(p);
             sidebar.appendChild(document.createElement("br"));
-        });
-
-        userInfo.tagList.forEach((tag) => {
-            var p = document.createElement("p");
-            p.className = "tag";
-            p.appendChild(document.createTextNode(tag.name));
-            sidebar.appendChild(p);
         });
 
         var messages = document.getElementById("messages");
@@ -144,6 +138,7 @@ async function startup()
         //    <br>
         //    <p>Message...............................</p>
         //</div>
+        /*
         userInfo.messageList.forEach((message) => {
             var div      = document.createElement("div");
             var img      = document.createElement("img");
@@ -166,7 +161,7 @@ async function startup()
             div.appendChild(msg);
 
             messages.appendChild(div);
-        });
+        });*/
     } catch(error) {
         console.log(error);
     }

@@ -9,6 +9,7 @@
   "author": "RyanBruno",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.478.0",
     "connect-redis": "^3.4.1",
     "express": "^4.17.1",
     "express-session": "^1.16.1",

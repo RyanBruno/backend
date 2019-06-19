@@ -5,129 +5,53 @@ const driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "ryan"
 
 const session = driver.session();
 
-const beginTx = function() 
+const createNode = async function(type, reqProperties) // TODO ON MATCH optional props
 {
-    return session.beginTransaction();
+    var query = "MERGE (:" + type + " {";
+    Object.keys(reqProperies).forEach((key) => {
+        query += key + ": {" + key + "},";
+    });
+    query += "})";
+
+    return await session.run(query, reqProperties);
 };
 
-const checkThenMergeUser = async function(username, name, password) 
+const createRelationship = async function(firstType, firstProperties, relationship, secondType, secondProperties)
 {
-    const tx = beginTx();
+    var query = "MATCH (a:" + fistType + " {";
+    Object.keys(firstProperties).forEach((key) => {
+        query += key + ": {" + key + "},";
+    });
+    query = query.substring(0, query.length - 1);
+    query += "}) MATCH (b:" + secondType + " {";
+    Object.keys(secondProperies).forEach((key) => {
+        query += key + ": {" + key + "},";
+    });
+    query = query.substring(0, query.length - 1);
+    query += "}) CREATE (a) -[:" + relationship + "]-> (b)";
 
-    const result = await tx.run("MATCH (n:User {username : {usernameParam} }) RETURN n", {usernameParam: username});
-    if (result.records.length != 0) 
-    {
-        return false;
-    }
-
-    const insert = await tx.run("MERGE (n:User {username: {usernameParam}})" + 
-                                "ON CREATE SET n.name = {nameParam}" +
-                                "ON CREATE SET n.password = {passwordParam}", 
-                                { usernameParam: username, nameParam: name, passwordParam: password });
-    
-    await tx.commit();
-    console.log("UserCreated: { %s, %s, %s }", name, username, password);
-
-    return true;
+    return await session.run(query, { ...firstProperties, ...secondProperties }); // TODO fix
 };
 
-const verifyLogin = async function(username, password) 
+const findRelationship = async function(firstType, firstProperties = {}, relationship, secondType, secondProperties = {})
 {
-    const tx = beginTx();
-    const result = await tx.run("MATCH (n:User {username : {usernameParam} }) RETURN n", {usernameParam: username});
-    tx.commit();
-    
-    return result.records.length != 0 && result.records[0].get(0).properties.password == password;
-};
-
-const getUserInfo = async function(username) 
-{
-    const tx = beginTx();
-    const result = await tx.run("MATCH (u:User {username: {usernameParam}})" + 
-                                "OPTIONAL MATCH (u) --> (c:Channel)" +
-                                "OPTIONAL MATCH (u) --> (t:Tag)" +
-                                "OPTIONAL MATCH (u) --> (m:Message)" +
-                                "RETURN u, c, t, m", 
-                                { usernameParam: username });
-    tx.commit();
-    var userInfo = { };
-
-    result.records.forEach((record) => {
-        if (record.get(0) !== null)
-        {
-            userInfo.username = record.get(0).properties.username;
-            userInfo.name = record.get(0).properties.name;
-        }
-        
-
-        if (record.get(1) !== null)
-        {
-            var channel = {
-                address: record.get(1).properties.address,
-                nickname: record.get(1).properties.nickname,
-            };
-            if (userInfo.channelList === undefined)
-            {
-                userInfo.channelList = [];
-            }
-            userInfo.channelList.push(channel);
-        }
-
-        if (record.get(2) !== null)
-        {
-            var tag = {
-                name: record.get(2).properties.name,
-                color: record.get(2).properties.color,
-            };
-            if (userInfo.tagList === undefined)
-            {
-                userInfo.tagList = [];
-            }
-            userInfo.tagList.push(tag);
-        }
-
-        if (record.get(3) !== null)
-        {
-            var message = {
-                message: record.get(3).properties.message,
-                timestamp: record.get(3).properties.timestamp,
-                username: record.get(3).properties.username,
-            };
-            if (userInfo.messageList === undefined)
-            {
-                userInfo.messageList = [];
-            }
-            userInfo.messageList.push(message);
-        }
+    var query = "MATCH (a:" + firstType + " {";
+    Object.keys(firstProperties).forEach((key) => {
+        query += key + ": {" + key + "},";
     });
 
-
-    // Throw error if user is not found
-
-    return userInfo;
-};
-
-const getChannelMessages = async function(username, channel)
-{
-
-    const tx = beginTx();
-    const result = await tx.run("MATCH (u:User {username: {usernameParam}})" + 
-                                "MATCH (u) --> (c:Channel {nickname: {nicknameParam})" +
-                                "MATCH (c) --> (m:Message)" +
-                                "RETURN m", 
-                                { usernameParam: username, nicknameParam: channel});
-    tx.commit();
-
-    var answer = [ ];
-
-    result.records.forEach((record) => {
-        if (record.get(0) !== null)
-        {
-            answer.push(record.get(0).properties);
-        }
+    query = query.substring(0, query.length - 1);
+    query += "}) MATCH (a) -[r:" + relationship + "]-> (b:" + secondType + " { ";
+    Object.keys(secondProperties).forEach((key) => {
+        query += key + ": {" + key + "},";
     });
 
-    return answer;
+    query = query.substring(0, query.length - 1);
+    query += " }) RETURN a, r, b";
+
+    var result = await session.run(query, { ...firstProperties, ...secondProperties });
+
+    return result.records.map((r) => {return {a: r.get(0), r: r.get(1), b: r.get(2)}});
 };
 
-module.exports = { beginTx, checkThenMergeUser, verifyLogin, getUserInfo, getChannelMessages };
+module.exports = { createNode, createRelationship, findRelationship };
