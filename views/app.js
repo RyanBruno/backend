@@ -100,6 +100,16 @@ async function getUserChannels(username)
     return await result.json();
 }
 
+async function getMessages(username)
+{
+    const result = await fetch("/api/user/:" + username + "/message/", {
+        method: 'GET',
+        credentials: 'same-origin',
+    });
+
+    return await result.json();
+}
+
 async function startup()
 {
     setHeight();
@@ -110,7 +120,7 @@ async function startup()
 
     try{ 
         const username = await fetchUsername();
-        const channels = await getUserChannels(username); // [ { channelName, profile {tbd} }]
+        const [ channels, inbox ] = await Promise.all([ getUserChannels(username), getMessages(username) ]); // [ { channelName, profile {tbd} }], [ {messageId, username, message} ]
         loading.hide();
 
         document.getElementById("profile").
@@ -128,18 +138,7 @@ async function startup()
 
         var messages = document.getElementById("messages");
 
-        // Message Format <Profile> <Username> <Time>
-        //                <Profile> <Message>
-        //
-        //<div class="message">
-        //    <img src="https://proxy.duckduckgo.com/iu/?u=https%3A%2F%2Fpng.pngtree.com%2Fsvg%2F20170602%2Fperson_1058425.png&f=1">
-        //    <p>Username</p>
-        //    <p> 10:50:60</p>
-        //    <br>
-        //    <p>Message...............................</p>
-        //</div>
-        /*
-        userInfo.messageList.forEach((message) => {
+        inbox.forEach((message) => {
             var div      = document.createElement("div");
             var img      = document.createElement("img");
             var username = document.createElement("p");
@@ -161,13 +160,10 @@ async function startup()
             div.appendChild(msg);
 
             messages.appendChild(div);
-        });*/
+        });
     } catch(error) {
         console.log(error);
     }
 }
 
 startup();
-
-
-

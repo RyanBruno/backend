@@ -3,6 +3,7 @@ const router = express.Router();
 
 const validation = require('./validation');
 const neo = require('./neo');
+const doc = require('./dynamo');
 
 router.use(express.json());
 
@@ -46,10 +47,40 @@ router.post('/session', async (req, res) => {
 
 router.get('/:channelName/message', async (req, res) => {
     // Document
+    // Validate :channelName
+
+
+    try {
+        var result = await doc.query("Messages", { channelName: req.params.channelName });
+
+        res.send(result); // Fix
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: 'An error has occured!' });
+    }
+
 });
 
 router.post('/:channelName/message', async (req, res) => {
-    // Post Document
+    var { username, message } = req.body;
+    var channelName = req.params.channelName;
+    
+    if (validation.validateUsername(username) || validation.validateMessage(message))
+    {
+        res.status(400).send({ error: "Malformed message!" });
+        return;
+    }
+
+    // Create timestamp
+
+    try {
+        var result = await doc.put("Messages", { username, timestamp, channelName, message });
+
+        res.send({ code: 200, message: 'Success!' });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: 'An error has occured!' });
+    }
 });
 
 router.get('/user/:username/channel', async (req, res) => {
@@ -62,6 +93,9 @@ router.get('/user/:username/channel', async (req, res) => {
         console.log(error);
         res.status(500).send({ error: 'An error has occured!' });
     }
+});
+
+router.get('/user/:username/message', async (req, res) => {
 });
 
 module.exports = router;
