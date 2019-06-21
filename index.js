@@ -1,3 +1,2 @@
-'use strict';
 
-module.exports = require('./src/backend');
+module.exports = require("./src/app");

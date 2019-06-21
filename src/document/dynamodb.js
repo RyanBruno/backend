@@ -14,16 +14,16 @@
     }
 };*/
 
-const AWS = require('aws-sdk');
-const AWSaccessKeyId = 'not-important';
-const AWSsecretAccessKey = 'not-important';      
-const AWSregion = 'local';
-const AWSendpoint = 'http://localhost:8000' // This is required
+const AWS = require("aws-sdk");
+const AWSaccessKeyId = "not-important";
+const AWSsecretAccessKey = "not-important";      
+const AWSregion = "local";
+const AWSendpoint = "http://localhost:8000";
 AWS.config.update({
-        accessKeyId: AWSaccessKeyId,
-        secretAccessKey: AWSsecretAccessKey,  
-        region: AWSregion,
-        endpoint: AWSendpoint
+    accessKeyId: AWSaccessKeyId,
+    secretAccessKey: AWSsecretAccessKey,  
+    region: AWSregion,
+    endpoint: AWSendpoint
 });
 const client = new AWS.DynamoDB.DocumentClient();
 
@@ -47,7 +47,7 @@ const get = async function(table, key)
             if (err) {
                 reject(err);
             } else {
-                resolve(data.Item); // Map to object
+                resolve(data.Item);
             }
         });
     });
@@ -67,7 +67,7 @@ const query = async function(table, conditions)
             if (err) {
                 reject(err);
             } else {
-                resolve(data.Items); // Map to object
+                resolve(data.Items);
             }
         });
     });
