@@ -1,9 +1,10 @@
 const express = require("express");
 
-const session = require("express-session");
 const redisStore = require("connect-redis")(session);
 
-const api = require("./api");
+const session = require("./session");
+const user = require("./user");
+const channel = require("./channel");
 
 const app = express();
 
@@ -11,20 +12,31 @@ app.use("/style.css", express.static("views/style.css"));
 app.use("/app.js", express.static("views/app.js"));
 app.use("/ui", express.static("views/ui.html"));
 
-app.use(session({ store: new redisStore({ url: "redis://localhost:6379" }), secret: "very secret secret", resave: false, saveUninitialized: false, }));
+app.use(session.session({ store: new redisStore({ url: "redis://localhost:6379" }), secret: "very secret secret", resave: false, saveUninitialized: false, }));
 app.use(express.json());
 
 const apiRouter = express.Router();
+const sessionRouter = express.Router();
+const userRouter = express.Router();
+const channelRouter = express.Router();
 
-apiRouter.get("/session", api.getSession);
-apiRouter.get("/:channelName/message", api.getChannelMessages);
-apiRouter.get("/user/:username/channel", api.getUserChannels);
-apiRouter.get("/user/:username/message", api.getUserMessages);
+sessionRouter.use(session.middleware);
+userRouter.use(user.middleware);
+channelRouter.use(channel.middleware);
 
-apiRouter.post("/session", api.postSession);
-apiRouter.post("/:channelName/message", api.postChannelMessage);
+sessionRouter.get("/", session.getSession);
+userRouter.get("/:username/channel", user.getUserChannels);
+userRouter.get("/:username/message", user.getUserMessages);
+channelRouter.get("/:channelName/message", channel.getChannelMessages);
+
+sessionRouter.post("/", session.postSession);
+userRouter.post("/", user.postUser);
+channelRouter.post("/:channelName/message", user.postChannelMessage);
 
 app.use("/api", apiRouter);
+apiRouter.use("/session", sessionRouter);
+apiRouter.use("/user", userRouter);
+apiRouter.use("/channel", channelRouter);
 
 app.listen(8080, () => {
     console.log("App listing: 8080");
