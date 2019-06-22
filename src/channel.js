@@ -1,7 +1,12 @@
 const validate = require("validate.js");
 const constraints = require("./constraints");
 
-const doc = require("./document/dynamodb");
+var doc = require("./document/dynamodb");
+
+const setDoc = function(driver)
+{
+    doc = driver;
+};
 
 const middleware = function(req, res, next)
 {
@@ -30,10 +35,9 @@ const getChannelMessages = async function(req, res)
 
 const postChannelMessage = async function(req, res)
 {
-    var { username, message } = req.body;
-    var channelName = req.params.channelName;
+    var message = { channelName: req.params.channelName, ...req.body };
     
-    const validation = validate(req.body, constraints.message);
+    const validation = validate(message, constraints.message);
     if (validation)
     {
         res.status(400).send({ code: 406, error: validation });
@@ -42,7 +46,7 @@ const postChannelMessage = async function(req, res)
     // TODO Create timestamp
 
     try {
-        var result = await doc.put("ChannelMessages", { username, /*timestamp, */channelName, message });
+        const result = await doc.put("ChannelMessages", message);
         if (result)
         {
             res.send({ code: 200, message: "Success!" });
@@ -56,4 +60,4 @@ const postChannelMessage = async function(req, res)
     }
 };
 
-module.exports = { middleware, getChannelMessages, postChannelMessage };
+module.exports = { setDoc, middleware, getChannelMessages, postChannelMessage };

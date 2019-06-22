@@ -3,7 +3,12 @@ const neo4j = require("neo4j-driver").v1;
 //const driver = neo4j.driver(process.env.NEO4J_HOSTNAME, neo4j.auth.basic(process.env.NEO4J_USERNAME, process.env.NEO4J_PASSWORD));
 const driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "ryan"));
 
-const session = driver.session();
+var session = driver.session();
+
+const setSession = function(sess)
+{
+    session = sess;
+};
 
 const createNode = async function(type, properties) // TODO ON MATCH optional props
 {
@@ -73,4 +78,4 @@ function fillProperties(properties)
     return " { " + query + " }";
 }
 
-module.exports = { createNode, findNode, createRelationship, findRelationship };
+module.exports = { setSession, createNode, findNode, createRelationship, findRelationship };

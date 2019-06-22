@@ -1,5 +1,5 @@
 const username = {
-    presents: true,
+    presence: true,
     length: {
         minimum: 6,
         maximum: 36
@@ -11,7 +11,7 @@ const username = {
 };
 
 const channelName = {
-    presents: true,
+    presence: true,
     length: {
         minimum: 6,
         maximum: 36
@@ -25,7 +25,7 @@ const channelName = {
 const login = {
     username: username,
     password: {
-        presents: true,
+        presence: true,
         length: {
             minimum: 6,
             maximum: 36
@@ -39,16 +39,13 @@ const login = {
 
 const message = {
     username: username,
-    address: {
-        presents: true,
-        email: true
-    },
+    channelName: channelName,
     timestamp: {
-        presents: false,
+        presence: false,
         // TODO
     },
     message: {
-        presents: true,
+        presence: true,
         type: "string",
         length: {
             minimum: 1,
