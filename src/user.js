@@ -57,4 +57,4 @@ const getUserMessages = async function(req, res)
     }
 };
 
-module.exports = { middleware, getUserChannels, getUserMessages };
+module.exports = { middleware, postUser, getUserChannels, getUserMessages };

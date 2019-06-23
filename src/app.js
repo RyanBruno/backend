@@ -34,7 +34,6 @@ userRouter.post("/", user.postUser);
 channelRouter.post("/:channelName/message", user.postChannelMessage);
 
 app.use("/api", apiRouter);
-apiRouter.use("/session", sessionRouter);
 apiRouter.use("/user", userRouter);
 apiRouter.use("/channel", channelRouter);
 

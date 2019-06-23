@@ -1,33 +1,21 @@
 const validate = require("validate.js");
 const constraints = require("./constraints");
 
-const graph = require("./graph/neo4j");
-const session = require("express-session");
+var graph = require("./graph/neo4j");
 
-const middleware = function(req, res, next)
+const setGraph = function(g)
 {
-    if (req.path.toLowerCase().startWith("/user") && req.params.username !== req.session.username)
-    {
-        // Error res
-        return;
-    } else if (req.path.toLowerCase().startWith("/channel"))
-    {
-        // Neo call
-    }
-    next();
+    graph = g;
 };
 
 const getSession = async function(req, res)
 {
-    res.send({ username: "Username" });
-    return;
-/*
     if (req.session.username === undefined)
     {
         res.status(401).send({ error: "No session found!" });
     } else {
         res.send({ username: req.session.username });
-    }*/
+    }
 };
 
 const postSession = async function(req, res) 
@@ -50,7 +38,7 @@ const postSession = async function(req, res)
             res.send({ code: 200, message: "Success!" });
         } else 
         {
-            res.send({ code: 406, message: "Invalid username and/or password!" });
+            res.status(400).send({ code: 406, message: "Invalid username and/or password!" });
         }
     } catch (error) {
         console.log(error);
@@ -58,4 +46,4 @@ const postSession = async function(req, res)
     }
 };
 
-module.exports = { session, middleware, getSession, postSession };
+module.exports = { setGraph, getSession, postSession };

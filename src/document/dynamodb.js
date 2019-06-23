@@ -19,13 +19,20 @@ const AWSaccessKeyId = "not-important";
 const AWSsecretAccessKey = "not-important";      
 const AWSregion = "local";
 const AWSendpoint = "http://localhost:8000";
+
 AWS.config.update({
     accessKeyId: AWSaccessKeyId,
     secretAccessKey: AWSsecretAccessKey,  
     region: AWSregion,
     endpoint: AWSendpoint
 });
-const client = new AWS.DynamoDB.DocumentClient();
+
+var client = new AWS.DynamoDB.DocumentClient();
+
+const setClient = function(cli)
+{
+    client = cli;
+};
 
 const put = async function(table, doc)
 {
@@ -60,6 +67,7 @@ const query = async function(table, conditions)
 
     Object.keys(conditions).forEach((key) => {
         keyConditions[key] = { ComparisonOperator: "EQ", AttributeValueList: [ conditions[key] ]};
+        // TODO array condtions
     });
 
     return await new Promise((resolve, reject) => { 
@@ -73,4 +81,4 @@ const query = async function(table, conditions)
     });
 };
 
-module.exports = { put, get, query };
+module.exports = { setClient, put, get, query };

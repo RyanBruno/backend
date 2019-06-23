@@ -4,8 +4,6 @@ const assert = require("assert");
 describe("Channel", function() {
     var req = { params: {channelName: "" }};
     var res = {
-        statusCode: 200,
-        sent: {},
         status: function(code) {
             this.statusCode = code;
             return this;
@@ -17,9 +15,6 @@ describe("Channel", function() {
     };
 
     var driver = {
-        table: "",
-        conditions: {},
-        doc: {},
         put: function(table, doc) {
             this.table = table;
             this.doc = doc;
