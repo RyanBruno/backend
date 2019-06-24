@@ -10,6 +10,18 @@ const username = {
     }
 };
 
+const password = {
+    presence: true,
+    length: {
+        minimum: 6,
+        maximum: 36
+    },
+    type: "string",
+    format: {
+        pattern: /[\w\s!@#$%^&*?,.~]+/
+    }
+};
+
 const channelName = {
     presence: true,
     length: {
@@ -24,17 +36,6 @@ const channelName = {
 
 const login = {
     username: username,
-    password: {
-        presence: true,
-        length: {
-            minimum: 6,
-            maximum: 36
-        },
-        type: "string",
-        format: {
-            pattern: /[\w\s!@#$%^&*?,.~]+/
-        }
-    }
 };
 
 const message = {
@@ -54,4 +55,20 @@ const message = {
     },
 };
 
-module.exports = { username, channelName, login, message };
+const user = {
+    name: {
+        presence: true,
+        length: {
+            minimum: 6,
+            maximum: 36
+        },
+        type: "string",
+        format: {
+            pattern: /[\w\s-]+/
+        },
+    },
+    username,
+    password,
+};
+
+module.exports = { username, password, channelName, login, message, user };

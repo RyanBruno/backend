@@ -17,6 +17,25 @@ const middleware = function(req, res, next)
 const postUser = async function(req, res)
 {
     // Waiting on graph addion of option props
+    const validation = validate(req.body, constraints.user);
+    if (validation)
+    {
+        res.status(400).send({ code: 406, error: validation });
+        return;
+    }
+
+    const { name, username, password } = req.body;
+
+    try {
+        await graph.createNode("User", { username }, { name, password });
+
+        // TODO Check if already created
+
+        res.send({ code: 200, message: "Success" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ error: "An error has occured!" });
+    }
 };
 
 const getUserChannels = async function(req, res)

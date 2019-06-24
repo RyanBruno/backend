@@ -1,11 +1,11 @@
 var active = "Inbox";
 
-    //{
-    //    username:,
-    //    name:,
-    //    channelList: [ {address:, nickname:,},],
-    //    tagList: [{name:, color:,},],
-    //}
+//{
+//    username:,
+//    name:,
+//    channelList: [ {address:, nickname:,},],
+//    tagList: [{name:, color:,},],
+//}
 
 function loadingDisplay()
 {
@@ -30,7 +30,7 @@ function loadingDisplay()
     var interval;
 
     return {
-        display: () => {
+        display: function() {
             var chat = document.getElementById("chat");
 
             chat.appendChild(dot1);
@@ -54,7 +54,7 @@ function loadingDisplay()
                 dot3.style.left = (pos + 35) + "px";
                 loading.style.left = (window.innerWidth / 2 - 35) + "px";
             }, 1);
-        }, hide: () => {
+        }, hide: function() {
             clearInterval(interval);
 
             loading.style.display = "none";
@@ -78,92 +78,129 @@ function setHeight()
     messages.style.height = (window.innerHeight - 100) + "px";
 }
 
-async function fetchUsername() 
+async function login()
 {
-    var result = await fetch("/api/session/", {
-        method: 'GET',
-        credentials: 'same-origin',
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    //TODO change submit box to loading...
+
+    fetch("/api/session/", {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ username, password }),
+    }).then((result) => {
+        if (result.ok)
+        {
+            // Redirect to ui
+        } else
+        {
+            const message = document.getElementById("message");
+            message.appendNode(document.createTextNode("Invalid username and/or password!"));
+        }
     });
-
-    result = await result.json();
-
-    return result.username;
 }
 
-async function getUserChannels(username)
+async function signup()
 {
-    const result = await fetch("/api/user/:" + username + "/channel/", {
-        method: 'GET',
-        credentials: 'same-origin',
+    const name = document.getElementById("name").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    //TODO change submit box to loading...
+
+    fetch("/api/user/", {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ name, username, password }),
+    }).then((result) => {
+        if (result.ok)
+        {
+            // Redirect to ui
+        } else
+        {
+            const message = document.getElementById("message");
+            message.appendNode(document.createTextNode("Invalid username and/or password!"));
+        }
     });
-
-    return await result.json();
-}
-
-async function getMessages(username)
-{
-    const result = await fetch("/api/user/:" + username + "/message/", {
-        method: 'GET',
-        credentials: 'same-origin',
-    });
-
-    return await result.json();
 }
 
 async function startup()
 {
     setHeight();
-    window.addEventListener('resize', setHeight);
+    window.addEventListener("resize", setHeight);
 
     var loading = loadingDisplay();
     loading.display();
 
-    try{ 
-        const username = await fetchUsername();
-        const [ channels, inbox ] = await Promise.all([ getUserChannels(username), getMessages(username) ]); // [ { channelName, profile {tbd} }], [ {messageId, username, message} ]
-        loading.hide();
+    try { 
+        var options = { 
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json",
+            },
+        };
+
+        let username = await fetch("/api/session/", options);
+        username = await username.json();
+        username = username.username;
 
         document.getElementById("profile").
             appendChild(document.createTextNode(username));
 
-        var sidebar = document.getElementById("sidebar");
-
-        channels.forEach((channel) => {
-            var p = document.createElement("p");
-            p.className = "channel";
-            p.appendChild(document.createTextNode(channel.channelName));
-            sidebar.appendChild(p);
-            sidebar.appendChild(document.createElement("br"));
+        fetch("/api/user/" + username + "/channel/", options).then((result) => {
+            return result.json();
+        }).then((channels) => {
+            var sidebar = document.getElementById("sidebar");
+            channels.forEach((channel) => {
+                var p = document.createElement("p");
+                p.className = "channel";
+                p.appendChild(document.createTextNode(channel.channelName));
+                sidebar.appendChild(p);
+                sidebar.appendChild(document.createElement("br"));
+            });
         });
 
-        var messages = document.getElementById("messages");
 
-        inbox.forEach((message) => {
-            var div      = document.createElement("div");
-            var img      = document.createElement("img");
-            var username = document.createElement("p");
-            var time     = document.createElement("p");
-            var br       = document.createElement("br");
-            var msg      = document.createElement("p");
+        fetch("/api/user/" + username + "/message/", options).then((result) => {
+            return result.json();
+        }).then((inbox) => {
+            loading.hide();
 
-            div.className = "message";
-            img.src = message.img;
+            var messages = document.getElementById("messages");
+            inbox.forEach((message) => {
+                var div      = document.createElement("div");
+                var img      = document.createElement("img");
+                var username = document.createElement("p");
+                var time     = document.createElement("p");
+                var br       = document.createElement("br");
+                var msg      = document.createElement("p");
 
-            username.appendChild(document.createTextNode(message.username));
-            time.appendChild(document.createTextNode(" " + message.timestamp));
-            msg.appendChild(document.createTextNode(message.message));
+                div.className = "message";
+                img.src = message.img;
 
-            div.appendChild(img);
-            div.appendChild(username);
-            div.appendChild(time);
-            div.appendChild(br);
-            div.appendChild(msg);
+                username.appendChild(document.createTextNode(message.username));
+                time.appendChild(document.createTextNode(" " + message.timestamp));
+                msg.appendChild(document.createTextNode(message.message));
 
-            messages.appendChild(div);
+                div.appendChild(img);
+                div.appendChild(username);
+                div.appendChild(time);
+                div.appendChild(br);
+                div.appendChild(msg);
+
+                messages.appendChild(div);
+            });
         });
     } catch(error) {
+        // TODO error handling
         console.log(error);
     }
 }
-
-startup();

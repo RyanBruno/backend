@@ -10,13 +10,18 @@ const setSession = function(sess)
     session = sess;
 };
 
-const createNode = async function(type, properties) // TODO ON MATCH optional props
+const createNode = async function(type, reqProperties, optionalProperties)
 {
-    var query = "MERGE (:" + type;
+    var query = "MERGE (a:" + type;
     query += fillProperties(properties);
     query += ")";
 
-    return await session.run(query, properties);
+    Object.keys(optionalProperties).forEach((key) => {
+        query += " ON CREATE SET a." + key + " = {" + key + "}";
+    });
+
+    // TODO return if created or not
+    return await session.run(query, { ...reqProperties, ...optionalProperties });
 };
 
 const findNode = async function(type, properties)

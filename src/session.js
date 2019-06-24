@@ -10,6 +10,9 @@ const setGraph = function(g)
 
 const getSession = async function(req, res)
 {
+    res.send({ username: "Username" });
+    return;
+
     if (req.session.username === undefined)
     {
         res.status(401).send({ error: "No session found!" });
