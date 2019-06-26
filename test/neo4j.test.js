@@ -16,6 +16,22 @@ describe("Neo4j", function() {
         session.properties = {};
     });
 
+    describe("createNode", function() {
+        it("should pass correct parameters to driver", async function() {
+            var reqProperties = { example1: "...", more1: true };
+            var optionalProperties = { example2: "...", more2: true };
+
+            neo.setSession(session);
+            const result = await neo.createNode("EXAMPLETYPE", reqProperties, optionalProperties);
+
+            //assert(result.success, "Did not return correct result");
+            assert.deepEqual(session.query, "MERGE (a:EXAMPLETYPE { example1: {example1}, more1: {more1} }) " +
+                "ON CREATE SET a.example2 = {example2} " + 
+                "ON CREATE SET a.more2 = {more2}",  "Did not pass correct query");
+            assert.deepEqual(session.properties, { ...reqProperties, ...optionalProperties },  "Did not pass correct properties");
+        });
+    });
+
     describe("findNode", function() {
         it("should pass correct parameters to driver", async function() {
             var properties = { example: "...", more: true };

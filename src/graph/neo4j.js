@@ -13,14 +13,14 @@ const setSession = function(sess)
 const createNode = async function(type, reqProperties, optionalProperties)
 {
     var query = "MERGE (a:" + type;
-    query += fillProperties(properties);
+    query += fillProperties(reqProperties);
     query += ")";
 
     Object.keys(optionalProperties).forEach((key) => {
         query += " ON CREATE SET a." + key + " = {" + key + "}";
     });
 
-    // TODO return if created or not
+    // TODO return if created or not 
     return await session.run(query, { ...reqProperties, ...optionalProperties });
 };
 
