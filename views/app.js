@@ -1,5 +1,12 @@
 var active = "Inbox";
 
+const fetchOptions = { 
+    method: "GET",
+    credentials: "same-origin",
+    headers: {
+        "Accept": "application/json",
+    },
+};
 //{
 //    username:,
 //    name:,
@@ -140,67 +147,105 @@ async function startup()
     loading.display();
 
     try { 
-        var options = { 
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-                "Accept": "application/json",
-            },
-        };
 
-        let username = await fetch("/api/session/", options);
-        username = await username.json();
-        username = username.username;
+        var addressableId = await fetch("/api/session/", fetchOptions);
+        addressableId = await addressableId.json();
+        addressableId = addressableId.data;
 
-        document.getElementById("profile").
-            appendChild(document.createTextNode(username));
+        var profileCache = profileCache(addressableId);
+        var messageCache = messageCache(addressableId);
 
-        fetch("/api/user/" + username + "/channel/", options).then((result) => {
-            return result.json();
-        }).then((channels) => {
-            var sidebar = document.getElementById("sidebar");
-            channels.forEach((channel) => {
+        profileCache.getCacheProfile(addressableId).then((profile) => {
+            document.getElementById("profile").
+                appendChild(document.createTextNode(profile.name));
+        });
+
+        let channels = await fetch("/api/" + addressableId + "/channels/", fetchOptions);
+        channels = await channels.json();
+        channels = channels.data;
+
+        var sidebar = document.getElementById("sidebar");
+        channels.channels.forEach(function (channel) {
+            profileCache.getCacheProfile(channel).then((profile) => {
                 var p = document.createElement("p");
-                p.className = "channel";
-                p.appendChild(document.createTextNode(channel.channelName));
+                p.appendChild(document.createTextNode(profile.name));
                 sidebar.appendChild(p);
-                sidebar.appendChild(document.createElement("br"));
+
+                p.addEventListener("click", function() {
+                    messageCache.displayRecentMessages(channel);
+                }); 
             });
         });
 
-
-        fetch("/api/user/" + username + "/message/", options).then((result) => {
-            return result.json();
-        }).then((inbox) => {
-            loading.hide();
-
-            var messages = document.getElementById("messages");
-            inbox.forEach((message) => {
-                var div      = document.createElement("div");
-                var img      = document.createElement("img");
-                var username = document.createElement("p");
-                var time     = document.createElement("p");
-                var br       = document.createElement("br");
-                var msg      = document.createElement("p");
-
-                div.className = "message";
-                img.src = message.img;
-
-                username.appendChild(document.createTextNode(message.username));
-                time.appendChild(document.createTextNode(" " + message.timestamp));
-                msg.appendChild(document.createTextNode(message.message));
-
-                div.appendChild(img);
-                div.appendChild(username);
-                div.appendChild(time);
-                div.appendChild(br);
-                div.appendChild(msg);
-
-                messages.appendChild(div);
-            });
-        });
+        loading.hide();
+        messageCache.displayRecentMessages(addressableId);
     } catch(error) {
         // TODO error handling
         console.log(error);
+    }
+}
+
+function profileCache()
+{
+    var cache = {};
+    async function getCacheProfile(addressableId)
+    {
+        if (cache[addressableId] !== undefined)
+        {
+            return cache[addressableId];
+        }
+
+        var profile = await fetch("/api/" + addressableId + "/profile", fetchOptions);
+        profile = await profile.json();
+        cache[addressableId] = profile.data;
+        return profile.data;
+    }
+}
+
+async function messageCache()
+{
+    var current;
+    var cache = {};
+    async function displayRecentMessages(addressableId)
+    {
+        var data = getCachedMessages(addessableId);
+        var messages = document.getElementById("messages");
+        data.forEach((message) => {
+            var div      = document.createElement("div");
+            var img      = document.createElement("img");
+            var username = document.createElement("p");
+            var time     = document.createElement("p");
+            var br       = document.createElement("br");
+            var msg      = document.createElement("p");
+
+            div.className = "message";
+            img.src = message.img;
+
+            username.appendChild(document.createTextNode(message.username));
+            time.appendChild(document.createTextNode(" " + message.timestamp));
+            msg.appendChild(document.createTextNode(message.message));
+
+            div.appendChild(img);
+            div.appendChild(username);
+            div.appendChild(time);
+            div.appendChild(br);
+            div.appendChild(msg);
+
+            messages.appendChild(div);
+        });
+    }
+
+    async function getCacheMessages(addressableId)
+    {
+        if (cache[addressableId] !== undefined)
+        {
+            return cache[addressableId];
+        }
+
+        var messages = await fetch("/api/" + addressableId + "/messages", fetchOptions);
+        // TODO only recent messages
+        messages = await messages.json();
+        cache[addressableId] = messages.data;
+        return messages.data;
     }
 }

@@ -5,8 +5,7 @@ const exSession = require("express-session");
 const redisStore = require("connect-redis")(exSession);
 
 const session = require("./session");
-const user = require("./user");
-const channel = require("./channel");
+const routes = require("./routes");
 
 const app = express();
 
@@ -19,25 +18,16 @@ app.use(exSession({ store: new redisStore({ url: "redis://localhost:6379" }), se
 app.use(express.json());
 
 const apiRouter = express.Router();
-const sessionRouter = express.Router();
-const userRouter = express.Router();
-const channelRouter = express.Router();
 
-userRouter.use(user.middleware);
-channelRouter.use(channel.middleware);
+apiRouter.get("/session/", session.getSession); // {}
+apiRouter.get("/:addressableId/channels", routes.getChannels); // { addressableId }
+apiRouter.get("/:addressableId/messages", routes.getMessages); // { addressableId }
+apiRouter.get("/:addressableId/profile", routes.getProfile); // { addressableId }
 
-sessionRouter.get("/", session.getSession);
-userRouter.get("/:username/channel", user.getUserChannels);
-userRouter.get("/:username/message", user.getUserMessages);
-channelRouter.get("/:channelName/message", channel.getChannelMessages);
+apiRouter.post("/session/", session.postSession); // { username, password }
+apiRouter.post("/user/", routes.postUser); // { username, password }
+apiRouter.post("/:addressableId/message", routes.postMessage); // { addressableId ...message} 
 
-sessionRouter.post("/", session.postSession);
-userRouter.post("/", user.postUser);
-channelRouter.post("/:channelName/message", channel.postChannelMessage);
-
-apiRouter.use("/session", sessionRouter);
-apiRouter.use("/user", userRouter);
-apiRouter.use("/channel", channelRouter);
 app.use("/api", apiRouter);
 
 app.listen(8080, () => {

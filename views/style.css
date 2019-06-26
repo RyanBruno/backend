@@ -64,7 +64,6 @@ p {
     margin: 0 auto;
     height: 60px;
     border-radius: 3px;
-    background-color: black;
 }
 
 #login input {
@@ -84,8 +83,17 @@ p {
     float: right;
 }
 
+#chat-box input {
+    width: 90%;
+    height: 90%;
+    margin: 3px 5%;
+    resize: none;
+}
+
 #sidebar p {
-    margin-left: 5%;
+    width: 100%;
+    margin: 5%;
+    display: block;
 }
 
 #sidebar {
