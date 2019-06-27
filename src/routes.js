@@ -1,4 +1,5 @@
 const AWS = require("aws-sdk");
+const crypto = require("crypto");
 
 AWS.config.update({
     accessKeyId: "not-important",
@@ -12,7 +13,23 @@ var client = new AWS.DynamoDB.DocumentClient();
 const validate = require("validate.js");
 const constraints = require("./constraints");
 
-const doc = require("./document/dynamodb");
+const getSession = async function(req, res)
+{
+    res.send({ username: "Username" });
+    return;
+
+    if (req.session.username === undefined)
+    {
+        res.status(401).send({ error: "No session found!" });
+    } else {
+        res.send({ username: req.session.username });
+    }
+};
+
+const postSession = async function(req, res) 
+{
+    //TODO secondary index by login.username
+};
 
 const postUser = function(req, res)
 {
@@ -25,10 +42,12 @@ const postUser = function(req, res)
 
     const { name, username, password } = req.body;
 
+
+    const addressableId = crypto.randomBytes(16).toString("hex");
+
     try {
         client.put( { TableName: "Addresssable",
-            // TODO make id
-            Item: { addressableId: username, login: { username, password, }, profile: { name }},
+            Item: { addressableId, login: { username, password, }, profile: { name }},
             ConditionExpression: "attribute_not_exists(login.username)",
         }, function (err, data) {
             if (err) {
@@ -112,4 +131,4 @@ const getProfile = function(req, res)
     }
 };
 
-module.exports = { postUser, getChannels, getMessages, postMessage };
+module.exports = { getSession, postSession, postUser, getChannels, getMessages, postMessage, getProfile };

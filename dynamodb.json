@@ -1,0 +1,74 @@
+{
+    "Addresses": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "address": {"S":"example@example.com"},
+                    "addressableId": {"S":"4296a211844c583fdfc0d29dc810d32c"}
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "address": {"S":"user@user.org"},
+                    "addressableId": {"S":"077f97630ad0d2b37f0452285ec36ae6"}
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "address": {"S":"offical@veryOffical.gov"},
+                    "addressableId": {"S":"077f97630ad0d2b37f0452285ec36ae6"}
+                }
+            }
+        }
+    ],
+    "Addressables": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "addressableId": {"S":"4296a211844c583fdfc0d29dc810d32c"},
+                    "profile": {
+                        "M": {
+                            "name": {"S":"ExampleChannel"},
+                            "bio": {"S":"A very intersting channel"}
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "addressableId": {"S":"077f97630ad0d2b37f0452285ec36ae6"},
+                    "channels": {"SS":["4296a211844c583fdfc0d29dc810d32c"]},
+                    "login": {
+                        "M": {
+                            "username": {"S":"Username"},
+                            "password": {"S":"password"}
+                        }
+                    },
+                    "profile": {
+                        "M": {
+                            "name": {"S":"Real Name"}
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "Messages": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "timestamp": {"N":"41513134"},
+                    "fromAddressableId": {"S":"077f97630ad0d2b37f0452285ec36ae6"},
+                    "toAddressableId": {"S":"4296a211844c583fdfc0d29dc810d32c"},
+                    "message": {"S":"An awesome message"}
+                }
+            }
+        }
+    ]
+}

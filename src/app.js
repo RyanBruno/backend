@@ -4,7 +4,6 @@ const express = require("express");
 const exSession = require("express-session");
 const redisStore = require("connect-redis")(exSession);
 
-const session = require("./session");
 const routes = require("./routes");
 
 const app = express();
@@ -19,12 +18,12 @@ app.use(express.json());
 
 const apiRouter = express.Router();
 
-apiRouter.get("/session/", session.getSession); // {}
+apiRouter.get("/session/", routes.getSession); // {}
 apiRouter.get("/:addressableId/channels", routes.getChannels); // { addressableId }
 apiRouter.get("/:addressableId/messages", routes.getMessages); // { addressableId }
 apiRouter.get("/:addressableId/profile", routes.getProfile); // { addressableId }
 
-apiRouter.post("/session/", session.postSession); // { username, password }
+apiRouter.post("/session/", routes.postSession); // { username, password }
 apiRouter.post("/user/", routes.postUser); // { username, password }
 apiRouter.post("/:addressableId/message", routes.postMessage); // { addressableId ...message} 
 
