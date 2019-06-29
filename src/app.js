@@ -19,13 +19,13 @@ app.use(express.json());
 const apiRouter = express.Router();
 
 apiRouter.get("/session/", routes.getSession); // {}
-apiRouter.get("/:addressableId/channels", routes.getChannels); // { addressableId }
-apiRouter.get("/:addressableId/messages", routes.getMessages); // { addressableId }
-apiRouter.get("/:addressableId/profile", routes.getProfile); // { addressableId }
+apiRouter.get("/:addressableId/channels", routes.getChannels);
+apiRouter.get("/:addressableId/messages", routes.getMessages);
+apiRouter.get("/:addressableId/profile", routes.getProfile);
 
-apiRouter.post("/session/", routes.postSession); // { username, password }
-apiRouter.post("/user/", routes.postUser); // { username, password }
-apiRouter.post("/:addressableId/message", routes.postMessage); // { addressableId ...message} 
+apiRouter.post("/session/", routes.postSession);
+apiRouter.post("/user/", routes.postUser);
+apiRouter.post("/:addressableId/message", routes.postMessage);
 
 app.use("/api", apiRouter);
 

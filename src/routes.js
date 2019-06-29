@@ -1,21 +1,17 @@
 const AWS = require("aws-sdk");
-const crypto = require("crypto");
 
 AWS.config.update({
-    accessKeyId: "not-important",
-    secretAccessKey: "not-important",  
-    region: "local",
-    endpoint: "http://localhost:8000",
+    region: process.env.AWS_DEFAULT_REGION,
 });
-
-var client = new AWS.DynamoDB.DocumentClient();
+const client = new AWS.DynamoDB.DocumentClient();
+const crypto = require("crypto");
 
 const validate = require("validate.js");
 const constraints = require("./constraints");
 
 const getSession = async function(req, res)
 {
-    res.send({ username: "Username" });
+    res.send({ data: "077f97630ad0d2b37f0452285ec36ae6" });
     return;
 
     if (req.session.username === undefined)
@@ -46,11 +42,11 @@ const postUser = function(req, res)
     const addressableId = crypto.randomBytes(16).toString("hex");
 
     try {
-        client.put( { TableName: "Addresssable",
+        client.put( { TableName: "Addressables",
             Item: { addressableId, login: { username, password, }, profile: { name }},
             ConditionExpression: "attribute_not_exists(login.username)",
-        }, function (err, data) {
-            if (err) {
+        }, function (error, data) {
+            if (error) {
                 console.log(error);
                 res.status(500).send({ error: "An error has occured!" });
             } else {
@@ -67,43 +63,61 @@ const postUser = function(req, res)
 
 const getChannels = function(req, res)
 {
-    const addressableId = req.params.addressableId;
+    get(req, res, [ "channels" ]);
+};
 
-    const validation = validate.single(addressableId, constraints.addressableId);
-    if (validation)
-    {
-        res.status(400).send({ code: 406, message: "Malformed input" });
-        return;
-    }
+const getMessages = function(req, res)
+{
+    // /api/:addressableId/messages?n=50
+    // /api/:addressableId/messages?after=531513513515
+    // /api/:addressableId/messages?before=13151351351&n=10
 
     try {
-        client.get( { TableName: "Addresssable",
+        client.query( { TableName: "Addressables",
             Key: { addressableId },
-            AttributesToGet: "channels",
-        }, function (err, data) {
-            if (err) {
+            KeyConditions: {
+                addressableId: {
+                    ComparisonOperator: EQ, /* required */
+                    AttributeValueList: [
+                        addressableId,
+                    ]
+                },
+                timestamp: {
+                    ComparisonOperator: GT, /* required */
+                    AttributeValueList: [
+                        after,
+                    ]
+                },
+            },
+            Count: count,
+            AttributesToGet: [
+                'STRING_VALUE', // All of it?
+            ],
+        }, function (error, data) {
+            if (error) {
                 console.log(error);
                 res.status(500).send({ error: "An error has occured!" });
             } else {
                 res.send({ code: 200, message: "Success", data: data.Item });
             }
         });
-
     } catch (error) {
         console.log(error);
         res.status(500).send({ error: "An error has occured!" });
     }
 };
-
-const getMessages = function(req, res)
-{};
 
 const postMessage = function(req, res)
 {};
 
 const getProfile = function(req, res)
 {
+    get(req, res, [ "profile" ]);
 
+};
+
+function get(req, res, AttributesToGet)
+{
     const addressableId = req.params.addressableId;
 
     const validation = validate.single(addressableId, constraints.addressableId);
@@ -114,11 +128,11 @@ const getProfile = function(req, res)
     }
 
     try {
-        client.get( { TableName: "Addresssable",
+        client.get( { TableName: "Addressables",
             Key: { addressableId },
-            AttributesToGet: "profile",
-        }, function (err, data) {
-            if (err) {
+            AttributesToGet,
+        }, function (error, data) {
+            if (error) {
                 console.log(error);
                 res.status(500).send({ error: "An error has occured!" });
             } else {
@@ -129,6 +143,6 @@ const getProfile = function(req, res)
         console.log(error);
         res.status(500).send({ error: "An error has occured!" });
     }
-};
+}
 
 module.exports = { getSession, postSession, postUser, getChannels, getMessages, postMessage, getProfile };
