@@ -54,12 +54,9 @@ const channelName = {
 };
 
 const message = {
-    username: username,
-    channelName: channelName,
-    timestamp: {
-        presence: false,
-        // TODO
-    },
+    toAddressableId: addressableId,
+    fromAddressableId: addressableId,
+    timestamp: number,
     message: {
         presence: true,
         type: "string",

@@ -18,7 +18,7 @@ app.use(express.json());
 
 const apiRouter = express.Router();
 
-apiRouter.get("/session/", routes.getSession); // {}
+apiRouter.get("/session/", routes.getSession);
 apiRouter.get("/:addressableId/channels", routes.getChannels);
 apiRouter.get("/:addressableId/messages", routes.getMessages);
 apiRouter.get("/:addressableId/profile", routes.getProfile);

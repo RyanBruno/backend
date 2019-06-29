@@ -22,9 +22,9 @@ const getSession = async function(req, res)
     }
 };
 
-const postSession = async function(req, res) 
+const postSession = async function(req, res)
 {
-    //TODO secondary index by login.username
+    // TODO secondary index by login.username
 };
 
 const postUser = function(req, res)
@@ -40,23 +40,17 @@ const postUser = function(req, res)
 
     const addressableId = crypto.randomBytes(16).toString("hex");
 
-    try {
-        client.put( { TableName: "Addressables",
-            Item: { addressableId, login: { username, password, }, profile: { name }},
-            ConditionExpression: "attribute_not_exists(login.username)",
-        }, function (error, data) {
-            if (error) {
-                console.log(error);
-                res.status(500).send({ error: "An error has occured!" });
-            } else {
-                res.send({ code: 200, message: "Success" });
-            }
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({ error: "An error has occured!" });
-    }
+    client.put( { TableName: "Addressables",
+        Item: { addressableId, login: { username, password, }, profile: { name }},
+        ConditionExpression: "attribute_not_exists(login.username)",
+    }, function (error, data) {
+        if (error) {
+            console.log(error);
+            res.status(500).send({ error: "An error has occured!" });
+        } else {
+            res.send({ code: 200, message: "Success" });
+        }
+    });
 };
 
 
@@ -87,39 +81,53 @@ const getMessages = function(req, res)
     // /api/:addressableId/messages?after=531513513515&n=1
     // /api/:addressableId/messages?before=13151351351&n=10
 
-    try {
-        client.query( { TableName: "Addressables",
-            Key: { addressableId },
-            KeyConditionExpression: "addressableId = :addressableId && timestamp BETWEEN :before AND :after",
-            ExpressionAttributeValues: {
-                addressableId,
-                before,
-                after,
-            },
-            Limit: n,
-            AttributesToGet: [
-                "timestamp",
-                "toAddressableId",
-                "fromAddressableId",
-                "message",
-            ],
-        }, function (error, data) {
-            if (error) {
-                console.log(error);
-                res.status(500).send({ error: "An error has occured!" });
-            } else {
-                res.send({ code: 200, message: "Success", data: { messages: data.Items } });
-            }
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({ error: "An error has occured!" });
-    }
+    client.query( { TableName: "Addressables",
+        Key: { addressableId },
+        KeyConditionExpression: "addressableId = :addressableId && timestamp BETWEEN :before AND :after",
+        ExpressionAttributeValues: {
+            addressableId,
+            before,
+            after,
+        },
+        Limit: n,
+        AttributesToGet: [
+            "timestamp",
+            "toAddressableId",
+            "fromAddressableId",
+            "message",
+        ],
+    }, function (error, data) {
+        if (error) {
+            console.log(error);
+            res.status(500).send({ error: "An error has occured!" });
+        } else {
+            res.send({ code: 200, message: "Success", data: { messages: data.Items } });
+        }
+    });
 };
 
 const postMessage = function(req, res)
 {
+    const validation = validate(req.body, constraints.message);
+    if (validation)
+    {
+        res.status(400).send({ code: 406, message: "Malformed input" });
+        return;
+    }
 
+    const { toAddressableId, fromAddressableId, message } = req.body;
+    const timestamp = Date.now();
+
+    client.put( { TableName: "Messages",
+        Item: { toAddressableId, fromAddressableId, timestamp, message}},
+    }, function (error, data) {
+        if (error) {
+            console.log(error);
+            res.status(500).send({ error: "An error has occured!" });
+        } else {
+            res.send({ code: 200, message: "Success" });
+        }
+    });
 };
 
 const getProfile = function(req, res)
@@ -139,22 +147,17 @@ function get(req, res, AttributesToGet)
         return;
     }
 
-    try {
-        client.get( { TableName: "Addressables",
-            Key: { addressableId },
-            AttributesToGet,
-        }, function (error, data) {
-            if (error) {
-                console.log(error);
-                res.status(500).send({ error: "An error has occured!" });
-            } else {
-                res.send({ code: 200, message: "Success", data: data.Item });
-            }
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(500).send({ error: "An error has occured!" });
-    }
+    client.get( { TableName: "Addressables",
+        Key: { addressableId },
+        AttributesToGet,
+    }, function (error, data) {
+        if (error) {
+            console.log(error);
+            res.status(500).send({ error: "An error has occured!" });
+        } else {
+            res.send({ code: 200, message: "Success", data: data.Item });
+        }
+    });
 }
 
 module.exports = { getSession, postSession, postUser, getChannels, getMessages, postMessage, getProfile };
