@@ -1,3 +1,22 @@
+const addressableId = {
+    presence: true,
+    length: {
+        is: 32,
+    },
+    type: "string",
+    format: {
+        pattern: /[0-9A-F]+/i
+    },
+};
+
+const number = {
+    presence: true,
+    type: "number",
+    format: {
+        pattern: /[0-9]+/
+    },
+};
+
 const username = {
     presence: true,
     length: {
@@ -7,7 +26,7 @@ const username = {
     type: "string",
     format: {
         pattern: /[\w-]+/
-    }
+    },
 };
 
 const password = {
@@ -31,11 +50,7 @@ const channelName = {
     type: "string",
     format: {
         pattern: /[\w-]+/
-    }
-};
-
-const login = {
-    username: username,
+    },
 };
 
 const message = {
@@ -71,4 +86,5 @@ const user = {
     password,
 };
 
-module.exports = { username, password, channelName, login, message, user };
+
+module.exports = { addressableId, number, username, password, channelName, message, user };

@@ -11,7 +11,7 @@ const constraints = require("./constraints");
 
 const getSession = async function(req, res)
 {
-    res.send({ data: "077f97630ad0d2b37f0452285ec36ae6" });
+    res.send({ data: { addressableId: "077f97630ad0d2b37f0452285ec36ae6" } });
     return;
 
     if (req.session.username === undefined)
@@ -37,7 +37,6 @@ const postUser = function(req, res)
     }
 
     const { name, username, password } = req.body;
-
 
     const addressableId = crypto.randomBytes(16).toString("hex");
 
@@ -68,37 +67,48 @@ const getChannels = function(req, res)
 
 const getMessages = function(req, res)
 {
+    const addressableId = req.params.addressableId;
+    const after = req.query.after | Date.now();
+    const before = req.query.before | 0;
+    const n = req.query.n | 100;
+
+    const validation = validate({ addressableId, after, before, n },
+        { addressableId: constraints.addressableId,
+            before: constraints.number,
+            n: constraints.number,});
+    if (validation)
+    {
+        res.status(400).send({ code: 406, message: "Malformed input" });
+        return;
+    }
+
+    // Leave sorting to client
     // /api/:addressableId/messages?n=50
-    // /api/:addressableId/messages?after=531513513515
+    // /api/:addressableId/messages?after=531513513515&n=1
     // /api/:addressableId/messages?before=13151351351&n=10
 
     try {
         client.query( { TableName: "Addressables",
             Key: { addressableId },
-            KeyConditions: {
-                addressableId: {
-                    ComparisonOperator: EQ, /* required */
-                    AttributeValueList: [
-                        addressableId,
-                    ]
-                },
-                timestamp: {
-                    ComparisonOperator: GT, /* required */
-                    AttributeValueList: [
-                        after,
-                    ]
-                },
+            KeyConditionExpression: "addressableId = :addressableId && timestamp BETWEEN :before AND :after",
+            ExpressionAttributeValues: {
+                addressableId,
+                before,
+                after,
             },
-            Count: count,
+            Limit: n,
             AttributesToGet: [
-                'STRING_VALUE', // All of it?
+                "timestamp",
+                "toAddressableId",
+                "fromAddressableId",
+                "message",
             ],
         }, function (error, data) {
             if (error) {
                 console.log(error);
                 res.status(500).send({ error: "An error has occured!" });
             } else {
-                res.send({ code: 200, message: "Success", data: data.Item });
+                res.send({ code: 200, message: "Success", data: { messages: data.Items } });
             }
         });
     } catch (error) {
@@ -108,7 +118,9 @@ const getMessages = function(req, res)
 };
 
 const postMessage = function(req, res)
-{};
+{
+
+};
 
 const getProfile = function(req, res)
 {
