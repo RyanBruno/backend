@@ -63,7 +63,7 @@
         {
             "PutRequest": {
                 "Item": {
-                    "timestamp": {"N":"41513134"},
+                    "timestamp": {"S":"41513134"},
                     "fromAddressableId": {"S":"077f97630ad0d2b37f0452285ec36ae6"},
                     "toAddressableId": {"S":"4296a211844c583fdfc0d29dc810d32c"},
                     "message": {"S":"An awesome message"}

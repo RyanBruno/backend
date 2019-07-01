@@ -7,18 +7,30 @@ const fetchOptions = {
     },
 };
 
-/* Frontend Functions */
+/* Display Functions */
+function displayUser(profile)
+{
+    document.getElementById("profile").appendChild(document.createTextNode(profile.name));
+}
 
-function displayMessages(data)
+function displayChannel(profile, listener)
+{
+    var p = document.createElement("p");
+    p.appendChild(document.createTextNode(profile.name));
+    document.getElementById("sidebar").appendChild(p);
+
+    p.addEventListener("click", listener); 
+}
+
+function clearMessages()
 {
     var messages = document.getElementById("messages");
     messages.childNodes.forEach((node) => messages.removeChild(node));
-
-    data.forEach(displayMessage);
 }
 
-function displayMessage(message)
+function displayMessage(message, profile)
 {
+    console.log(profile);
     var messages = document.getElementById("messages");
 
     var div      = document.createElement("div");
@@ -29,9 +41,9 @@ function displayMessage(message)
     var msg      = document.createElement("p");
 
     div.className = "message";
-    img.src = message.img;
+    img.src = profile.img;
 
-    username.appendChild(document.createTextNode(message.username));
+    username.appendChild(document.createTextNode(profile.name));
     time.appendChild(document.createTextNode(" " + message.timestamp));
     msg.appendChild(document.createTextNode(message.message));
 
@@ -44,6 +56,7 @@ function displayMessage(message)
     messages.appendChild(div);
 }
 
+/* Frontend Functions */
 function setHeight()
 {
     [ "sidebar", "chat", "users" ].forEach((id) => {
@@ -103,109 +116,77 @@ function loadingDisplay()
     };
 }
 
-/* Backend Functions */
-
-async function login()
-{
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-    //TODO change submit box to loading...
-
-    fetch("/api/session/", {
-        ...fetchOptions,
-        method: "POST",
-        body: JSON.stringify({ username, password }),
-    }).then((result) => {
-        if (result.ok)
-        {
-            // Redirect to ui
-        } else
-        {
-            const message = document.getElementById("message");
-            message.childNodes.forEach((node) => message.removeChild(node));
-            message.appendNode(document.createTextNode("Invalid username and/or password!"));
-        }
-    });
-}
-
-async function signup()
-{
-    const name = document.getElementById("name").value;
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-    //TODO change submit box to loading...
-
-    fetch("/api/user/", {
-        ...fetchOptions,
-        method: "POST",
-        body: JSON.stringify({ name, username, password }),
-    }).then((result) => {
-        if (result.ok)
-        {
-            // Redirect to ui
-        } else
-        {
-            const message = document.getElementById("message");
-            message.childNodes.forEach((node) => message.removeChild(node));
-            message.appendNode(document.createTextNode("Invalid username and/or password!"));
-        }
-    });
-}
-
-async function startup()
+function UI()
 {
     setHeight();
     window.addEventListener("resize", setHeight);
 
-    var loadingCleanup = loadingDisplay();
-    var profiles = profileCache();
-    var messages = messageCache();
+    this.loadingCleanup = loadingDisplay();
+    this.profiles = profileCache();
+    this.messages = messageCache();
+}
 
-    var addressableId = await myFetch("/api/session/");
-    
-    if (!addressableId)
-    {
-        // Login
-        return;
-    }
+UI.prototype.loadUser = async function()
+{
+    const result = await myFetch("/api/session/");
 
-    addressableId = addressableId.data.addressableId;
+    if (!result) {/*Login*/return; } // TODO THrow error
 
-    profiles(addressableId).then((profile) => {
-        document.getElementById("profile").
-            appendChild(document.createTextNode(profile.name));
-    }).catch((error) => {
-        // Could not load your profile.
+    this.addressableId = result.data.addressableId;
 
+    this.profiles(this.addressableId).then((profile) => {
+        if (profile) displayUser(profile);
     });
+};
 
-    myFetch("/api/" + addressableId + "/channels/").then((result) => {
+UI.prototype.loadChannels = function()
+{
+    myFetch("/api/" + this.addressableId + "/channels/").then((result) => {
         if (result)
         {
             result.data.channels.forEach((channel) => {
-                profiles(channel).then((profile) => {
-                    var p = document.createElement("p");
-                    p.appendChild(document.createTextNode(profile.name));
-                    document.getElementById("sidebar").appendChild(p);
-
-                    p.addEventListener("click", function() {
-                        displayMessages(messages(channel));
-                    }); 
-                }).catch((error) => {
-                    // Could not retrive profile.
+                this.profiles(channel).then((profile) => {
+                    displayChannel(profile, () => {
+                        this.loadMessages(channel);
+                    });
+                }).catch(() => {
+                    console.log("Fetch Error: Could not fetch profile from API: " + channel);
                 });
             });
         } else
         {
-            console.log("Fetch Error: Could not fetch channels from API: " + addressableId);
+            console.log("Fetch Error: Could not fetch channels from API: " + this.addressableId);
         }
     });
+};
 
-    messages(addressableId).then((data) => {
-        loadingCleanup();
-        displayMessages(data);
+UI.prototype.loadMessages = function(addressableId)
+{
+    this.messages(addressableId).then((messages) => {
+        if (messages)
+        {
+            this.loadingCleanup();
+            clearMessages();
+            messages.forEach((message) => {
+                this.profiles(message.fromAddressableId).then((profile) => {
+                    displayMessage(message, profile);
+                }).catch(() => {
+                    console.log("Fetch Error: Could not fetch profile from API: " + message.fromAddressableId);
+                });
+            });
+        }
     }).catch((error) => {
-        // Could not retrive messages 
+        console.log("Wiping message cache to try and fix the problem.");
+        this.messages();
+    });
+};
+
+function startup()
+{
+    const ui = new UI();
+    ui.loadUser().then(() => {
+        ui.loadChannels();
+        ui.loadMessages(ui.addressableId);
     });
 }
 
@@ -223,12 +204,12 @@ function profileCache()
         var result = await myFetch("/api/" + addressableId + "/profile");
         if (result)
         {
-            cache[addressableId] = profile.data.profile;
+            cache[addressableId] = result.data.profile;
             return cache[addressableId];
         } else
         {
             console.log("Fetch Error: Could not fetch profile from API: " + addressableId);
-            return null
+            return null;
         }
     };
 }
@@ -240,6 +221,8 @@ function messageCache()
 
     return async function(addressableId)
     {
+        if (!addressableId) { cache = {}; return; }
+
         current = addressableId;
         var after;
 
@@ -252,16 +235,16 @@ function messageCache()
             after = cache[addressableId][0].timestamp;
         }
 
-        var result = await myFetch("/api/" + addressableId + "/profile?n=50&after=" + after);
+        var result = await myFetch("/api/" + addressableId + "/messages?n=50&after=" + after);
         if (result)
         {
-            cache[addressableId].append(result.data.messages);
-            //TODO sort messages
+            cache[addressableId] = _.concat(cache[addressableId], result.data.messages);
+            cache[addressableId] = _.sortBy(cache[addressableId], [ "timestamp" ]);
             return cache[addressableId];
         } else
         {
             console.log("Fetch Error: Could not fetch messages from API: " + addressableId);
-            return null
+            return null;
         }
     };
 }
@@ -270,10 +253,10 @@ async function myFetch(endpoint, options = fetchOptions)
 {
     var result;
     try {
-        result = fetch(endpoint, fetchOptions);
+        result = await fetch(endpoint, options);
         if (!result.ok)
         {
-            console.log("Not OK fetch: Endpoint: " + endpoint + "Status code: " + result.status);
+            console.log("Not OK fetch: Endpoint: " + endpoint + " Status code: " + result.status);
             return null;
         }
     } catch (error) {
@@ -282,7 +265,7 @@ async function myFetch(endpoint, options = fetchOptions)
     }
 
     try {
-        result = result.json();
+        result = await result.json();
     } catch (error) {
         console.log("Parsing Error: There was a problem parsing JSON data sent from API");
         return null;
@@ -290,4 +273,3 @@ async function myFetch(endpoint, options = fetchOptions)
 
     return result;
 }
-
