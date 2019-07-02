@@ -1,8 +1,5 @@
 const AWS = require("aws-sdk");
 
-AWS.config.update({
-    region: process.env.AWS_DEFAULT_REGION,
-});
 const client = new AWS.DynamoDB.DocumentClient();
 const crypto = require("crypto");
 
@@ -32,7 +29,7 @@ const postSession = async function(req, res)
 
     client.query( { TableName: "Addressables",
         KeyConditionExpression: "login.username = :username",
-        ExpressionAttributeValues: { ":username", input.username },
+        ExpressionAttributeValues: { ":username": input.username },
         Limit: 1,
     }, function (error, data) {
         if (error) {

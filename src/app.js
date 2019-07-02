@@ -1,8 +1,7 @@
 const express = require("express");
 
-
-const exSession = require("express-session");
-const redisStore = require("connect-redis")(exSession);
+const session = require("express-session");
+const redisStore = require("connect-redis")(session);
 
 const routes = require("./routes");
 
@@ -13,7 +12,7 @@ app.use("/app.js", express.static("views/app.js"));
 app.use("/ui", express.static("views/ui.html"));
 app.use("/login", express.static("views/login.html"));
 
-app.use(exSession({ store: new redisStore({ url: "redis://localhost:6379" }), secret: "very secret secret", resave: false, saveUninitialized: false, }));
+app.use(session({ store: new redisStore({ url: "redis://localhost:6379" }), secret: "very secret secret", resave: false, saveUninitialized: false, }));
 app.use(express.json());
 
 const apiRouter = express.Router();
