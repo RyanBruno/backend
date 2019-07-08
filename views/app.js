@@ -122,6 +122,7 @@ function UI()
     window.addEventListener("resize", setHeight);
 
     this.loadingCleanup = loadingDisplay();
+    this.active;
     this.profiles = profileCache();
     this.messages = messageCache();
 }
@@ -132,7 +133,7 @@ UI.prototype.loadUser = async function()
 
     if (!result) {/*Login*/return; } // TODO THrow error
 
-    this.addressableId = result.data.addressableId;
+    this.addressableId = result.addressableId;
 
     this.profiles(this.addressableId).then((profile) => {
         if (profile) displayUser(profile);
@@ -165,6 +166,7 @@ UI.prototype.loadMessages = function(addressableId)
     this.messages(addressableId).then((messages) => {
         if (messages)
         {
+            this.active = addressableId;
             this.loadingCleanup();
             clearMessages();
             messages.forEach((message) => {
@@ -181,12 +183,31 @@ UI.prototype.loadMessages = function(addressableId)
     });
 };
 
+UI.prototype.sendMessage = function(message)
+{
+    myFetch("/api/" + this.active + "/message" , {
+        ...fetchOptions,
+        method: "POST",
+        body: JSON.stringify({ toAddressableId: this.active, fromAddressableId: this.addressableId, message }),
+    });
+};
+
 function startup()
 {
     const ui = new UI();
     ui.loadUser().then(() => {
         ui.loadChannels();
         ui.loadMessages(ui.addressableId);
+
+        const bar = document.getElementsByTagName("input")[0];
+        bar.addEventListener("keypress", (event) => {
+            if (event.key === "Enter")
+            {
+                ui.sendMessage(event.target.value);
+                event.target.value = "";
+            }
+        });
+
     });
 }
 
@@ -216,14 +237,12 @@ function profileCache()
 
 function messageCache()
 {
-    var current;
     var cache = {};
 
     return async function(addressableId)
     {
         if (!addressableId) { cache = {}; return; }
 
-        current = addressableId;
         var after;
 
         if (!cache[addressableId])

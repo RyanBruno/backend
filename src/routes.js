@@ -7,13 +7,15 @@ const validate = require("validate.js");
 const constraints = require("./constraints");
 const _ = require("lodash");
 
-const getSession = async function(req, res)
+const getSession = function(req, res)
 {
+    res.send({ addressableId: "077f97630ad0d2b37f0452285ec36ae6" });
+    return;
     if (req.session.addressableId === undefined)
     {
         res.status(401).send({ error: "No session found!" });
     } else {
-        res.send({ username: req.session.addressableId });
+        res.send({ addressableId: req.session.addressableId });
     }
 };
 
@@ -119,7 +121,7 @@ const getMessages = function(req, res)
 const postMessage = function(req, res)
 {
     let input = _.pick(req.body, [ "toAddressableId", "fromAddressableId", "message" ]);
-    input.timestamp = _.now();
+    input.timestamp = _.toString(_.now());
 
     if (validate(input, constraints.message))
     {

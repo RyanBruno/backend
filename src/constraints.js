@@ -58,7 +58,6 @@ const channelName = {
 const message = {
     toAddressableId: addressableId,
     fromAddressableId: addressableId,
-    timestamp: number,
     message: {
         presence: true,
         type: "string",
